@@ -11,7 +11,7 @@ type pasteHandler struct {
 	PasteUsecase paste.PasteUsecase
 }
 
-func NewPasteUsecase(PasteUsecase paste.PasteUsecase) PasteHandler {
+func NewPasteHandler(PasteUsecase paste.PasteUsecase) PasteHandler {
 	return &pasteHandler{
 		PasteUsecase: PasteUsecase,
 	}

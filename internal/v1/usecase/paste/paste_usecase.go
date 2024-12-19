@@ -19,7 +19,7 @@ func NewPasteUsecase(PasteRepo paste.PasteRepo) PasteUsecase {
 
 func (u *pasteUsecase) GetPaste(ctx context.Context, params GetPasteParams) (*model.Paste, error) {
 
-	paste, err := u.PasteRepo.GetPaste(ctx, paste.NewGetPasteParams())
+	paste, err := u.PasteRepo.GetPaste(ctx, paste.NewGetPasteParams(params.Shortlink))
 	if err != nil {
 		return nil, err
 	}

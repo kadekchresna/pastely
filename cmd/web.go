@@ -12,7 +12,9 @@ import (
 	"github.com/kadekchresna/pastely/helper/logger"
 	echopprof "github.com/kadekchresna/pastely/helper/pprof"
 	v1_paste_repo "github.com/kadekchresna/pastely/internal/v1/repository/paste"
+	v1_paste_usecase "github.com/kadekchresna/pastely/internal/v1/usecase/paste"
 	v1_web "github.com/kadekchresna/pastely/internal/v1/web"
+	v1_paste_web "github.com/kadekchresna/pastely/internal/v1/web/paste"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -99,7 +101,11 @@ func WebInit(config config.Config) WebApp {
 }
 
 func WebV1Dependencies(app WebApp) v1_web.Handlers {
-	_ = v1_paste_repo.NewPasteRepo(app.DB)
+	pasteRepo := v1_paste_repo.NewPasteRepo(app.DB)
+	pasteUsecases := v1_paste_usecase.NewPasteUsecase(pasteRepo)
+	pasteHandler := v1_paste_web.NewPasteHandler(pasteUsecases)
 
-	return v1_web.Handlers{}
+	return v1_web.Handlers{
+		Paste: pasteHandler,
+	}
 }
