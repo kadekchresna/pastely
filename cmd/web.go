@@ -11,8 +11,9 @@ import (
 	driver_db "github.com/kadekchresna/pastely/driver/db"
 	"github.com/kadekchresna/pastely/helper/logger"
 	echopprof "github.com/kadekchresna/pastely/helper/pprof"
-	"github.com/kadekchresna/pastely/internal/repository"
-	v1 "github.com/kadekchresna/pastely/internal/web/v1"
+	v1_paste_repo "github.com/kadekchresna/pastely/internal/v1/repository/paste"
+	v1_web "github.com/kadekchresna/pastely/internal/v1/web"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -70,7 +71,7 @@ func run() {
 	app := WebInit(config)
 	handlers := WebV1Dependencies(app)
 
-	v1.InitAPI(e, v1.Handlers(handlers))
+	v1_web.InitAPI(e, handlers)
 
 	e.Any("/metrics", echo.WrapHandler(promhttp.Handler()))
 
@@ -97,8 +98,8 @@ func WebInit(config config.Config) WebApp {
 	}
 }
 
-func WebV1Dependencies(app WebApp) v1.Handlers {
-	_ = repository.NewPasteRepo(app.DB)
+func WebV1Dependencies(app WebApp) v1_web.Handlers {
+	_ = v1_paste_repo.NewPasteRepo(app.DB)
 
-	return v1.Handlers{}
+	return v1_web.Handlers{}
 }
