@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pastely
+spec:
+  selector:
+    matchLabels:
+      app: pastely
+  template:
+    metadata:
+      labels:
+        app: pastely
+    spec:
+      hostNetwork: true
+      containers:
+      - name: pastely
+        image: kadekchresna/pastely:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+          name: pastely-port
+        env:
+          - name: "APP_ENV"
+            value: "prd"
+          - name: "APP_NAME"
+            value: "pastely"
+          - name: "APP_PORT"
+            value: "8080"
+          - name: "DB_DSN"
+            # value: "postgresql://postgres:root@db-basic-web-service.default.svc.cluster.local:30081/postgres?sslmode=disable"
+            value: "postgresql://postgres:admin@host.minikube.internal:5432/postgres?sslmode=disable"
+          - name: "PROMETHEUS_MONITORING_ENABLED"
+            value: "true"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-pastely
+spec:
+  selector:
+    app: pastely
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: pastely-pprof
+    protocol: TCP
+    nodePort: 31080
+  type: NodePort

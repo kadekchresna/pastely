@@ -8,9 +8,12 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/kadekchresna/pastely/config"
+	cfg "github.com/kadekchresna/pastely/config"
 	driver_db "github.com/kadekchresna/pastely/driver/db"
 	"github.com/kadekchresna/pastely/helper/logger"
 	echopprof "github.com/kadekchresna/pastely/helper/pprof"
+	"github.com/kadekchresna/pastely/helper/transaction"
+
 	v1_paste_repo "github.com/kadekchresna/pastely/internal/v1/repository/paste"
 	v1_paste_usecase "github.com/kadekchresna/pastely/internal/v1/usecase/paste"
 	v1_web "github.com/kadekchresna/pastely/internal/v1/web"
@@ -20,12 +23,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
-	"gorm.io/gorm"
-)
-
-const (
-	STAGING     = `stg`
-	PRODUCTIOON = `prd`
 )
 
 func initConfig() {
@@ -35,7 +32,7 @@ func initConfig() {
 }
 
 func init() {
-	if os.Getenv("APP_ENV") != PRODUCTIOON {
+	if os.Getenv("APP_ENV") != config.PRODUCTION {
 
 		// init invoke env before everything
 		cobra.OnInitialize(initConfig)
@@ -55,7 +52,8 @@ var versionCmd = &cobra.Command{
 }
 
 type WebApp struct {
-	DB *gorm.DB
+	DB     config.DB
+	Config cfg.Config
 }
 
 type Handlers struct {
@@ -92,17 +90,23 @@ func run() {
 	logger.Log().Info(fmt.Sprintf("%s service finished", config.AppName))
 }
 
-func WebInit(config config.Config) WebApp {
-	db := driver_db.InitDB(config)
+func WebInit(config cfg.Config) WebApp {
+	masterDB := driver_db.InitDB(config.DatabaseMasterDSN)
+	slaveDB := driver_db.InitDB(config.DatabaseSlaveDSN)
 
 	return WebApp{
-		DB: db,
+		DB: cfg.DB{
+			MasterDB: masterDB,
+			SlaveDB:  slaveDB,
+		},
+		Config: config,
 	}
 }
 
 func WebV1Dependencies(app WebApp) v1_web.Handlers {
 	pasteRepo := v1_paste_repo.NewPasteRepo(app.DB)
-	pasteUsecases := v1_paste_usecase.NewPasteUsecase(pasteRepo)
+	transactionRepo := transaction.NewTransactionRepo(app.DB)
+	pasteUsecases := v1_paste_usecase.NewPasteUsecase(app.Config, pasteRepo, transactionRepo)
 	pasteHandler := v1_paste_web.NewPasteHandler(pasteUsecases)
 
 	return v1_web.Handlers{

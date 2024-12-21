@@ -17,5 +17,7 @@ func InitAPI(
 	v1 := e.Group("/api/v1")
 
 	v1.GET("/paste", h.Paste.GetPaste)
+	v1.POST("/paste", h.Paste.CreatePaste)
+	v1.DELETE("/paste", h.Paste.DeleteExpiredPastes)
 
 }
