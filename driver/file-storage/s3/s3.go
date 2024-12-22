@@ -13,6 +13,7 @@ import (
 	cfg "github.com/kadekchresna/pastely/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -202,4 +203,33 @@ func (basics *S3BucketBasics) DeleteFiles(ctx context.Context, bucketName string
 	}
 
 	return nil
+}
+
+func (basics *S3BucketBasics) GetObjectPresignedURL(ctx context.Context, bucketName string, objectKey string, expires int) (*v4.PresignedHTTPRequest, error) {
+
+	req, err := s3.NewPresignClient(basics.S3Client).PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+	}, s3.WithPresignExpires(time.Duration(expires)*time.Minute))
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get presign file %v from %v:%v. Here's why: %v",
+			objectKey, bucketName, objectKey, err)
+	}
+
+	return req, nil
+}
+
+func (basics *S3BucketBasics) CreateObjectPresignedURL(ctx context.Context, bucketName string, objectKey string, expires int) (*v4.PresignedHTTPRequest, error) {
+
+	req, err := s3.NewPresignClient(basics.S3Client, func(po *s3.PresignOptions) {}).PresignPutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(objectKey),
+		ContentType: aws.String("application/octet-stream"),
+	}, s3.WithPresignExpires(time.Duration(expires)*time.Minute))
+	if err != nil {
+		return nil, fmt.Errorf("couldn't put presign file %v from %v:%v. Here's why: %v",
+			objectKey, bucketName, objectKey, err)
+	}
+
+	return req, nil
 }

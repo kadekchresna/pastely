@@ -14,10 +14,21 @@ import (
 	echopprof "github.com/kadekchresna/pastely/helper/pprof"
 	"github.com/kadekchresna/pastely/helper/transaction"
 
+	v1_log_repo "github.com/kadekchresna/pastely/internal/v1/repository/log"
+	v1_log_usecase "github.com/kadekchresna/pastely/internal/v1/usecase/log"
+	v1_log_web "github.com/kadekchresna/pastely/internal/v1/web/log"
+
 	v1_paste_repo "github.com/kadekchresna/pastely/internal/v1/repository/paste"
 	v1_paste_usecase "github.com/kadekchresna/pastely/internal/v1/usecase/paste"
 	v1_web "github.com/kadekchresna/pastely/internal/v1/web"
 	v1_paste_web "github.com/kadekchresna/pastely/internal/v1/web/paste"
+
+	v2_log_repo "github.com/kadekchresna/pastely/internal/v2/repository/log"
+
+	v2_paste_repo "github.com/kadekchresna/pastely/internal/v2/repository/paste"
+	v2_paste_usecase "github.com/kadekchresna/pastely/internal/v2/usecase/paste"
+	v2_web "github.com/kadekchresna/pastely/internal/v2/web"
+	v2_paste_web "github.com/kadekchresna/pastely/internal/v2/web/paste"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -69,9 +80,13 @@ func run() {
 
 	config := config.InitConfig()
 	app := WebInit(config)
-	handlers := WebV1Dependencies(app)
+	v1Handlers := WebV1Dependencies(app)
 
-	v1_web.InitAPI(e, handlers)
+	v1_web.InitAPI(e, v1Handlers)
+
+	v2Handlers := WebV2Dependencies(app)
+
+	v2_web.InitAPI(e, v2Handlers)
 
 	e.Any("/metrics", echo.WrapHandler(promhttp.Handler()))
 
@@ -93,11 +108,13 @@ func run() {
 func WebInit(config cfg.Config) WebApp {
 	masterDB := driver_db.InitDB(config.DatabaseMasterDSN)
 	slaveDB := driver_db.InitDB(config.DatabaseSlaveDSN)
+	analyticDB := driver_db.InitDB(config.DatabaseAnalyticDSN)
 
 	return WebApp{
 		DB: cfg.DB{
-			MasterDB: masterDB,
-			SlaveDB:  slaveDB,
+			MasterDB:   masterDB,
+			SlaveDB:    slaveDB,
+			AnalyticDB: analyticDB,
 		},
 		Config: config,
 	}
@@ -106,10 +123,28 @@ func WebInit(config cfg.Config) WebApp {
 func WebV1Dependencies(app WebApp) v1_web.Handlers {
 	pasteRepo := v1_paste_repo.NewPasteRepo(app.DB)
 	transactionRepo := transaction.NewTransactionRepo(app.DB)
-	pasteUsecases := v1_paste_usecase.NewPasteUsecase(app.Config, pasteRepo, transactionRepo)
+	logRepo := v1_log_repo.NewLogRepo(app.DB)
+
+	pasteUsecases := v1_paste_usecase.NewPasteUsecase(app.Config, pasteRepo, transactionRepo, logRepo)
+	logUsecase := v1_log_usecase.NewLogUsecase(app.Config, logRepo)
+
 	pasteHandler := v1_paste_web.NewPasteHandler(pasteUsecases)
+	logHandler := v1_log_web.NewLogHandler(logUsecase)
 
 	return v1_web.Handlers{
+		Paste: pasteHandler,
+		Log:   logHandler,
+	}
+}
+
+func WebV2Dependencies(app WebApp) v2_web.Handlers {
+	pasteRepo := v2_paste_repo.NewPasteRepo(app.DB)
+	transactionRepo := transaction.NewTransactionRepo(app.DB)
+	logRepo := v2_log_repo.NewLogRepo(app.DB)
+	pasteUsecases := v2_paste_usecase.NewPasteUsecase(app.Config, pasteRepo, transactionRepo, logRepo)
+	pasteHandler := v2_paste_web.NewPasteHandler(pasteUsecases)
+
+	return v2_web.Handlers{
 		Paste: pasteHandler,
 	}
 }

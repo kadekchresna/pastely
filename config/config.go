@@ -17,8 +17,9 @@ type Config struct {
 	AppPort int
 	AppEnv  string
 
-	DatabaseMasterDSN string
-	DatabaseSlaveDSN  string
+	DatabaseMasterDSN   string
+	DatabaseSlaveDSN    string
+	DatabaseAnalyticDSN string
 
 	AppFileStorage string
 	S3BucketName   string
@@ -29,8 +30,9 @@ type Config struct {
 }
 
 type DB struct {
-	MasterDB *gorm.DB
-	SlaveDB  *gorm.DB
+	MasterDB   *gorm.DB
+	SlaveDB    *gorm.DB
+	AnalyticDB *gorm.DB
 }
 
 func InitConfig() Config {
@@ -39,8 +41,9 @@ func InitConfig() Config {
 		AppEnv:  os.Getenv("APP_ENV"),
 		AppPort: env.GetEnvInt("APP_PORT"),
 
-		DatabaseMasterDSN: os.Getenv("DB_MASTER_DSN"),
-		DatabaseSlaveDSN:  os.Getenv("DB_SLAVE_DSN"),
+		DatabaseMasterDSN:   os.Getenv("DB_MASTER_DSN"),
+		DatabaseSlaveDSN:    os.Getenv("DB_SLAVE_DSN"),
+		DatabaseAnalyticDSN: os.Getenv("DB_ANALYTIC_DSN"),
 
 		AppFileStorage: os.Getenv("APP_FILE_STORAGE"),
 		S3BucketName:   os.Getenv("S3_BUCKET_NAME"),

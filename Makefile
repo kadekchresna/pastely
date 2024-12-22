@@ -31,9 +31,28 @@ minio:
 
 redis:
 	docker volume create redis_pastely && \
-	docker run --name redis-pastely -d \
+	docker run -p 6379:6379 \
+	--name redis-pastely -d \
 	-v redis_pastely:/data \
 	redis
+
+cassandra:
+	docker volume create cassandra_pastely && \
+	docker run -p 7000:7000 \
+	-p 9042:9042 \
+  	-p 7001:7001 \
+	--name cassandra-pastely -d \
+	-v cassandra_pastely:/var/lib/cassandra \
+  	-v ./deploy/cassandra.yaml:/etc/cassandra/cassandra.yaml \
+	cassandra:latest
+
+timescale:
+	docker volume create timescale_pastely && \
+	docker run -d --name timescaledb-pastely -p 6543:5432 \
+	-e POSTGRES_PASSWORD=admin \
+    -e POSTGRES_USER=postgres \
+	-v timescale_pastely:/var/lib/postgresql/data \
+	timescale/timescaledb:latest-pg16
 
 init: pg redis
 	@echo "init...."
