@@ -66,3 +66,19 @@ docker-push: docker-tag
 minio-upload:
 	mc alias set minio-docker http://localhost:9000 root rootatleast8 
 	mc cp env.example minio-docker/pastely-bucket/env.file
+
+# Migrate
+# db (analytic, main)
+# name (migration name) ex: make migrate-create db=main name=create_table_user
+migrate-create:
+	@if [ "$(db)" = "analytic" ]; then \
+		migrate create -ext sql -dir ./migration/analytic $(name); \
+	else \
+		migrate create -ext sql -dir ./migration/main $(name); \
+	fi
+
+migrate-up:
+	go run migration/migrate.go $(db) up
+
+migrate-down:	
+	go run migration/migrate.go $(db) down

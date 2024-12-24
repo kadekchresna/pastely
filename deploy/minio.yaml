@@ -1,10 +1,18 @@
-# Deploys a new Namespace for the MinIO Pod
+
+
 apiVersion: v1
-kind: Namespace
+kind: PersistentVolumeClaim
 metadata:
-  name: minio-pastely # Change this value if you want a different namespace name
-  labels:
-    name: minio-pastely # Change this value to match metadata.name
+  name: minio-pvc
+spec:
+  resources:
+    requests:
+      storage: 500Mi
+  volumeMode: Filesystem
+  storageClassName: minio-storage-class
+  accessModes:
+    - ReadWriteOnce
+
 ---
 # Deploys a new MinIO Pod into the metadata.namespace Kubernetes namespace
 #
@@ -30,11 +38,30 @@ spec:
     - minio server /data --console-address :9090
     volumeMounts:
     - mountPath: /data
-      name: localvolume # Corresponds to the `spec.volumes` Persistent Volume
-  nodeSelector:
-    kubernetes.io/hostname: kubealpha.local # Specify a node label associated to the Worker Node on which you want to deploy the pod.
+      name: minio-pvc # Corresponds to the `spec.volumes` Persistent Volume Claim
   volumes:
-  - name: localvolume
+  - name: minio-pvc
     hostPath: # MinIO generally recommends using locally-attached volumes
-      path: /mnt/disk1/data # Specify a path to a local drive or volume on the Kubernetes worker node
+      path: /mnt/minio/data # Specify a path to a local drive or volume on the Kubernetes worker node
       type: DirectoryOrCreate # The path to the last directory must exist
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+spec:
+  selector:
+    app: minio
+  ports:
+  - name: minio-port-server
+    port: 9090
+    targetPort: 9090
+    nodePort: 39090
+    type: NodePort
+  - name: minio-port-console
+    port: 9091
+    targetPort: 9091
+    nodePort: 39091
+    type: NodePort

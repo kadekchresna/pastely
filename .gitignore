@@ -3,3 +3,4 @@
 __debug*
 vendor/
 .vscode/
+deploy/postgres-operator/

@@ -1,3 +1,25 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-map-pastely
+data:
+  APP_NAME: "pastly"
+  APP_PORT: "8080"
+  APP_ENV: "production"
+  DB_MASTER_DSN: "postgresql://pastely:4f8Zr86Tq4usNliYFM8sKyS0UFpog2bQov1cjsZpQJgtkFG1WGLDrv7Np6E9ZcVm@postgres-pastely-production-pooler.default.svc.cluster.local:5432/pastely?sslmode=require"
+  DB_SLAVE_DSN: "postgresql://standby:wYi3HBVUu83gZbgfgijPsREm0uivzfJpfc98bT1vKLTL7FixbHen8JgSTPEd2Rmw@postgres-pastely-production-pooler-repl.default.svc.cluster.local:5432/pastely?sslmode=require"
+  DB_ANALYTIC_DSN: "postgresql://pastely:RnpnnFSFUReZYqngtz5nHVd349R1CIlKYlEt6Y8t5JyPMOrIt55QB05RYULh93B0@postgres-timescale-pastely-productioon-pooler.default.svc.cluster.local:5432/pastely?sslmode=require"
+  APP_FILE_STORAGE: "minio"
+  S3_BUCKET_NAME: "pastely-bucket"
+  S3_BUCKET_REGION: "us-east-1"
+  S3_BUCKET_ENDPOINT: "http://host.minikube.internal:9000"
+  S3_BUCKET_ACCESS_KEY: "ppZwtlQOz51ZInKKMBS5"
+  S3_BUCKET_SECRET_KEY: "vjwk9od4U6HQzRcymNo2lNwbFYC0j1KhBzDDyMgb"
+  PROMETHEUS_MONITORING_ENABLED: "true"
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,28 +34,27 @@ spec:
         app: pastely
     spec:
       hostNetwork: true
+      dnsConfig:
+        nameservers:
+        - 10.96.0.10
+        searches:
+        - default.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+      dnsPolicy: None
       containers:
       - name: pastely
-        image: kadekchresna/pastely:latest
+        image: kadekchresna/pastely
         resources:
           limits:
             memory: "128Mi"
-            cpu: "500m"
+            cpu: "100m"
         ports:
         - containerPort: 8080
           name: pastely-port
-        env:
-          - name: "APP_ENV"
-            value: "prd"
-          - name: "APP_NAME"
-            value: "pastely"
-          - name: "APP_PORT"
-            value: "8080"
-          - name: "DB_DSN"
-            # value: "postgresql://postgres:root@db-basic-web-service.default.svc.cluster.local:30081/postgres?sslmode=disable"
-            value: "postgresql://postgres:admin@host.minikube.internal:5432/postgres?sslmode=disable"
-          - name: "PROMETHEUS_MONITORING_ENABLED"
-            value: "true"
+        envFrom:
+        - configMapRef:
+            name: config-map-pastely
 
 ---
 
@@ -47,7 +68,7 @@ spec:
   ports:
   - port: 8080
     targetPort: 8080
-    name: pastely-pprof
+    name: pastely-port
     protocol: TCP
     nodePort: 31080
   type: NodePort

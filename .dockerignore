@@ -1,0 +1,5 @@
+vendor/
+__debug*
+deploy/postgres-operator/
+build/
+.vscode/
