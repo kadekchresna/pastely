@@ -34,7 +34,6 @@ metadata:
   labels:
     app: minio
   name: minio
-  namespace: minio-pastely # Change this value to match the namespace metadata.name
 spec:
   containers:
   - name: minio
@@ -43,10 +42,15 @@ spec:
     - /bin/bash
     - -c
     args: 
-    - minio server /data --console-address :9090
+    - minio server /data --console-address :9001
     volumeMounts:
     - mountPath: /data
       name: minio-pvc # Corresponds to the `spec.volumes` Persistent Volume Claim
+    ports:
+    - containerPort: 9000
+      name: port-server
+    - containerPort: 9001
+      name: port-console
     envFrom:
     - configMapRef:
         name: minio-cm
@@ -64,14 +68,13 @@ metadata:
 spec:
   selector:
     app: minio
+  type: NodePort
   ports:
-  - name: minio-port-server
-    port: 9090
-    targetPort: 9090
-    nodePort: 39090
-    type: NodePort
-  - name: minio-port-console
-    port: 9091
-    targetPort: 9091
-    nodePort: 39091
-    type: NodePort
+  - name: port-server
+    port: 9000
+    targetPort: 9000
+    nodePort: 30090
+  - name: port-console
+    port: 9001
+    targetPort: 9001
+    nodePort: 30091
