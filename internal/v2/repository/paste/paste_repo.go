@@ -58,6 +58,10 @@ func (r *pasteRepo) CreatePaste(ctx context.Context, data model.Paste) (*model.P
 
 	p.GenerateShortURLBase62()
 
+	if data.ExpirationLengthInMinutes == 0 {
+		data.ExpirationLengthInMinutes = 5
+	}
+
 	returning := model.Paste{
 		Shortlink:                 p.Shortlink,
 		PasteURL:                  p.PasteURL,
