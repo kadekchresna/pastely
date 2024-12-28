@@ -41,5 +41,4 @@ the total maybe around ~0,04 KB (including timescaledb metadata)
 ## Reference
 
 https://stackoverflow.com/questions/742013/how-do-i-create-a-url-shortener
-https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/pastebin/README.md
 https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/endpoints/
