@@ -8,6 +8,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.2
 	github.com/lib/pq v1.10.9
 	github.com/prometheus/client_golang v1.20.5
+	github.com/redis/go-redis/v9 v9.7.0
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0
 	gorm.io/driver/postgres v1.5.11
@@ -15,6 +16,7 @@ require (
 )
 
 require (
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	go.uber.org/atomic v1.7.0 // indirect

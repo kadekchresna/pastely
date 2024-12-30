@@ -27,6 +27,11 @@ type Config struct {
 	S3Endpoint     string
 	S3AccessKey    string
 	S3SecretKey    string
+
+	RedisHost     string
+	RedisUsername string
+	RedisPassword string
+	RedisDB       int
 }
 
 type DB struct {

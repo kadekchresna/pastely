@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kadekchresna/pastely/config"
 	cfg "github.com/kadekchresna/pastely/config"
+	"github.com/kadekchresna/pastely/driver/cache"
 	driver_db "github.com/kadekchresna/pastely/driver/db"
 	"github.com/kadekchresna/pastely/helper/logger"
 	echopprof "github.com/kadekchresna/pastely/helper/pprof"
@@ -65,6 +66,7 @@ var versionCmd = &cobra.Command{
 type WebApp struct {
 	DB     config.DB
 	Config cfg.Config
+	Cache  cache.Cache
 }
 
 type Handlers struct {
@@ -110,12 +112,15 @@ func WebInit(config cfg.Config) WebApp {
 	slaveDB := driver_db.InitDB(config.DatabaseSlaveDSN)
 	analyticDB := driver_db.InitDB(config.DatabaseAnalyticDSN)
 
+	cache := cache.InitCache(config)
+
 	return WebApp{
 		DB: cfg.DB{
 			MasterDB:   masterDB,
 			SlaveDB:    slaveDB,
 			AnalyticDB: analyticDB,
 		},
+		Cache:  cache,
 		Config: config,
 	}
 }
@@ -141,7 +146,7 @@ func WebV2Dependencies(app WebApp) v2_web.Handlers {
 	pasteRepo := v2_paste_repo.NewPasteRepo(app.DB)
 	transactionRepo := transaction.NewTransactionRepo(app.DB)
 	logRepo := v2_log_repo.NewLogRepo(app.DB)
-	pasteUsecases := v2_paste_usecase.NewPasteUsecase(app.Config, pasteRepo, transactionRepo, logRepo)
+	pasteUsecases := v2_paste_usecase.NewPasteUsecase(app.Config, pasteRepo, transactionRepo, logRepo, app.Cache)
 	pasteHandler := v2_paste_web.NewPasteHandler(pasteUsecases)
 
 	return v2_web.Handlers{

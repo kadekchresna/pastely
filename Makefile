@@ -82,3 +82,11 @@ migrate-up:
 
 migrate-down:	
 	go run migration/migrate.go $(db) down
+
+
+pastely-up:
+	helm install postgres-operator ./postgres-operator
+	sleep 10
+	helm install postgres-pastely ./postgres-pastely
+	helm install minio-pastely ./minio-pastely
+	helm install pastely ./pastely
