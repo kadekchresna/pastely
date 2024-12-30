@@ -1,6 +1,11 @@
 # paste.ly
 Backend service immitate bit.ly for generating short URL and files uploader
 
+## How to run
+``` bash
+make pastely-up
+
+```
 
 ## Calculate
 
