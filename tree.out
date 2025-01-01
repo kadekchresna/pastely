@@ -1,0 +1,40 @@
+.
+├── cmd
+├── config
+├── deploy
+│   ├── chart
+│   │   ├── minio-pastely
+│   │   ├── pastely
+│   │   ├── postgres-operator
+│   │   └── postgres-pastely
+├── driver
+│   ├── cache
+│   ├── db
+│   └── file-storage
+│       ├── minio
+│       └── s3
+├── env.example
+├── go.mod
+├── go.sum
+├── helper
+│   ├── constant
+│   ├── env
+│   ├── logger
+│   ├── pprof
+│   ├── prometeus
+│   └── transaction
+├── internal
+│   ├── v1
+│   │   ├── model
+│   │   ├── repository
+│   │   ├── usecase
+│   │   └── web
+│   └── v2
+│       ├── model
+│       ├── repository
+│       ├── usecase
+│       └── web
+├── main.go
+├── migration
+
+40 directories, 40 files

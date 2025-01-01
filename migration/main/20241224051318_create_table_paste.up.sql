@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS public.paste (
 	expired_at timestamp NULL,
 	CONSTRAINT paste_pk PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS paste_shortlink_idx ON public.paste USING btree (shortlink);
+CREATE UNIQUE INDEX IF NOT EXISTS paste_shortlink_idx ON public.paste USING btree (shortlink);
 
 COMMIT;
