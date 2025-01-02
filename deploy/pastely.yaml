@@ -46,9 +46,12 @@ spec:
       - name: pastely
         image: kadekchresna/pastely
         resources:
-          limits:
+          requests:
+            cpu: "200m"   # 200 millicores
             memory: "128Mi"
-            cpu: "100m"
+          limits:
+            cpu: "500m"
+            memory: "250Mi"
         ports:
         - containerPort: 8080
           name: pastely-port
@@ -72,3 +75,25 @@ spec:
     protocol: TCP
     nodePort: 31080
   type: NodePort
+
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pastelly-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pastely
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 90

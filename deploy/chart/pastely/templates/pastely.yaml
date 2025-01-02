@@ -6,15 +6,15 @@ data:
   APP_NAME: "pastly"
   APP_PORT: "8080"
   APP_ENV: "production"
-  DB_MASTER_DSN: "postgresql://pastely:4clZyD5q8HEsOLtyWyCCc4pCHDTFWsS4ZMYClmcL18DMUfM84es0nA2WmsWUbd1W@postgres-pastely-production-pooler.default.svc.cluster.local:5432/pastely?sslmode=require"
-  DB_SLAVE_DSN: "postgresql://pastely:4clZyD5q8HEsOLtyWyCCc4pCHDTFWsS4ZMYClmcL18DMUfM84es0nA2WmsWUbd1W@postgres-pastely-production-pooler-repl.default.svc.cluster.local:5432/pastely?sslmode=require"
-  DB_ANALYTIC_DSN: "postgresql://pastely:CbEgyqpUTRt5S6MqkDamgcbT2NXe4oA1RwmXFK90FbxJsQdfoTkIo60foZjzdf8Z@postgres-timescale-pastely-productioon-pooler.default.svc.cluster.local:5432/pastely?sslmode=require"
+  DB_MASTER_DSN: "postgresql://postgres:admin@host.minikube.internal:5432/postgres?sslmode=disable"
+  DB_SLAVE_DSN: "postgresql://postgres:admin@host.minikube.internal:5432/postgres?sslmode=disable"
+  DB_ANALYTIC_DSN: "postgresql://postgres:admin@host.minikube.internal:6543/postgres?sslmode=disable"
   APP_FILE_STORAGE: "minio"
   S3_BUCKET_NAME: "pastely-bucket"
   S3_BUCKET_REGION: "us-east-1"
-  S3_BUCKET_ENDPOINT: "http://minio-service.default.svc.cluster.local:9000"
+  S3_BUCKET_ENDPOINT: "http://host.minikube.internal:9000"
   S3_BUCKET_ACCESS_KEY: "ppZwtlQOz51ZInKKMBS5"
-  S3_BUCKET_SECRET_KEY: "D7FkmoJAEi9BokZK4uQFfeAoLn8H4ZXV9LFxm906"
+  S3_BUCKET_SECRET_KEY: "vjwk9od4U6HQzRcymNo2lNwbFYC0j1KhBzDDyMgb"
   PROMETHEUS_MONITORING_ENABLED: "true"
 
 ---
@@ -45,9 +45,12 @@ spec:
       - name: pastely
         image: kadekchresna/pastely
         resources:
-          limits:
+          requests:
+            cpu: "200m"   # 200 millicores
             memory: "128Mi"
-            cpu: "100m"
+          limits:
+            cpu: "500m"
+            memory: "250Mi"
         ports:
         - containerPort: 8080
           name: pastely-port
@@ -71,3 +74,25 @@ spec:
     protocol: TCP
     nodePort: 31080
   type: NodePort
+
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pastelly-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pastely
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 90

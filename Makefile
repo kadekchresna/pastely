@@ -85,8 +85,8 @@ migrate-down:
 
 
 pastely-up:
-	helm install postgres-operator ./postgres-operator
-	sleep 10
-	helm install postgres-pastely ./postgres-pastely
-	helm install minio-pastely ./minio-pastely
-	helm install pastely ./pastely
+	helm upgrade --install postgres-operator ./deploy/chart/postgres-operator
+	sleep 20
+	helm upgrade --install postgres-pastely ./deploy/chart/postgres-pastely
+	helm upgrade --install minio-pastely ./deploy/chart/minio-pastely
+	helm upgrade --install pastely ./deploy/chart/pastely

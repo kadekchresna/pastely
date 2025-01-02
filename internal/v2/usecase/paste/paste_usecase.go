@@ -42,7 +42,10 @@ func (u *pasteUsecase) GetPaste(ctx context.Context, params GetPasteParams) (*mo
 
 	key := fmt.Sprintf("%s-%s", constant.KEY_CACHE_DETAIL_PASTE_USECASE, params.Shortlink)
 	err = u.Cache.Get(ctx, key, p)
-	if p != nil {
+	if p != nil && len(p.PasteURL) > 0 {
+		if err := u.LogRepo.CreateLog(ctx, model.Log{Shortlink: p.Shortlink}); err != nil {
+			return nil, err
+		}
 		return p, nil
 	}
 
